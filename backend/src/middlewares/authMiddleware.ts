@@ -47,7 +47,7 @@ export const authenticate: RequestHandler = async (
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Authentication failed.",
+      message: "Your Session expired kindly login again.",
       error: error.message,
     });
   }

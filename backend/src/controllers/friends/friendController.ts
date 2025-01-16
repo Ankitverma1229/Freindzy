@@ -1,7 +1,12 @@
 import { RequestHandler } from "express";
 import { AuthenticatedRequest } from "../../middlewares/authMiddleware.js";
 import Friend from "../../models/friendModel.js";
+import { ObjectId } from "mongoose";
 
+type SuggestedFriend = {
+  name: string;
+  profilePic: string;
+};
 export const getAllFriends: RequestHandler = async (
   req: AuthenticatedRequest,
   res
@@ -51,7 +56,7 @@ export const addNewFriend: RequestHandler = async (
 ) => {
   try {
     const { userName, email } = req.user!;
-    const { friendId, friendName, profilePic } = req.body;
+    const { friendId, friendName, friendEmail, profilePic } = req.body;
 
     if (!friendId || !friendName) {
       res.status(400).json({
@@ -59,6 +64,12 @@ export const addNewFriend: RequestHandler = async (
         message: "No friend details found",
       });
       return;
+    }
+    if (email === friendEmail) {
+      res.status(400).json({
+        sucess: false,
+        message: "You can add yourself in your friend list.",
+      });
     }
 
     // Check if user already has a friends list
@@ -69,8 +80,7 @@ export const addNewFriend: RequestHandler = async (
       const newUser = await Friend.create({
         user: userName,
         email: email,
-        friends: [{ friendId, friendName }],
-        profilePic,
+        friends: [{ friendId, friendName, friendEmail, profilePic }],
       });
       res.status(200).json({
         success: true,
@@ -86,6 +96,7 @@ export const addNewFriend: RequestHandler = async (
       if (isFriendExists) {
         res.status(400).json({
           success: false,
+
           message: `${friendName} is already in you friend list.`,
         });
         return;
@@ -93,7 +104,9 @@ export const addNewFriend: RequestHandler = async (
       // If the user has an existing friend list, update it
       const updateUser = await Friend.findOneAndUpdate(
         { email }, // Find user by userName
-        { $push: { friends: { friendId, friendName }, profilePic } }, // Push new friend into friends array
+        {
+          $push: { friends: { friendId, friendName, friendEmail, profilePic } },
+        }, // Push new friend into friends array
         { new: true } // Return the updated document
       );
       res.status(200).json({
@@ -118,7 +131,7 @@ export const removeFriend: RequestHandler = async (
 ) => {
   try {
     const { email } = req.user!;
-    const { friendName } = req.body;
+    const { friendEmail } = req.body;
 
     const UserDetails = await Friend.findOne({ email });
     if (!UserDetails) {
@@ -126,17 +139,83 @@ export const removeFriend: RequestHandler = async (
         success: false,
         message: "No user's exits with provided credentials",
       });
+      return;
     }
 
     const removeUserFriend = await Friend.findOneAndUpdate(
       { email },
-      { $pull: { friends: { friendName } } },
+      { $pull: { friends: { friendEmail } } },
       { new: true }
     );
     res.status(200).json({
       success: true,
       message: "Friend removed from your friend list.",
       updatedFriendList: removeUserFriend?.friends,
+    });
+    return;
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+export const suggestedFriends: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res
+) => {
+  try {
+    const { email } = req.user!;
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        message: "Please login again",
+      });
+      return;
+    }
+
+    const userDetails = await Friend.findOne({ email });
+    if (!userDetails) {
+      res.status(404).json({
+        success: false,
+        message: "No user exists with provided credentials",
+      });
+      return;
+    }
+
+    const userFriendsEmails = userDetails.friends.map(
+      (friend) => friend.friendEmail
+    );
+
+    const friendsOfFriends = await Friend.find({
+      email: { $in: userFriendsEmails },
+    });
+
+    const addedEmails = new Set<string>();
+    const suggestedFriendsList: {
+      friendEmail: string;
+      friendName: string;
+      profilePic: string;
+    }[] = [];
+
+    friendsOfFriends.forEach((friend) => {
+      friend.friends.forEach((fof) => {
+        if (
+          fof.friendEmail !== email &&
+          !userFriendsEmails.includes(fof.friendEmail) &&
+          !addedEmails.has(fof.friendEmail)
+        ) {
+          addedEmails.add(fof.friendEmail);
+          suggestedFriendsList.push(fof);
+        }
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      suggestedFriends: suggestedFriendsList,
     });
   } catch (error: any) {
     res.status(500).json({

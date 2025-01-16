@@ -4,6 +4,7 @@ interface IFriends extends Document {
   user: string;
   email: string;
   friends: Array<{
+    friendEmail: string;
     friendId: ObjectId;
     friendName: string;
     profilePic: string;
@@ -12,6 +13,7 @@ interface IFriends extends Document {
     userId: ObjectId; // Changed from name to userId
     name: string;
     profilePic: string;
+    friendEmail: string;
     accepted: boolean;
   }>;
 }
@@ -38,15 +40,15 @@ const friendSchema: Schema<IFriends> = new mongoose.Schema(
         friendId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
-          required: true,
         },
         friendName: {
           type: String,
-          required: true,
+        },
+        friendEmail: {
+          type: String,
         },
         profilePic: {
           type: String,
-          required: true,
         },
       },
     ],
@@ -55,15 +57,15 @@ const friendSchema: Schema<IFriends> = new mongoose.Schema(
         userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
-          required: true,
         },
         name: {
           type: String,
-          required: true,
         },
         profilePic: {
           type: String,
-          required: true,
+        },
+        friendEmail: {
+          type: String,
         },
         accepted: {
           type: Boolean,
