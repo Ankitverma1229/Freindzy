@@ -58,14 +58,17 @@ export const registerUser: RequestHandler = async (req, res) => {
 
     const token = generateToken(payload);
 
-    res.cookie("token", token, {
+    const options = {
+      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 1000,
-    });
+      secure: process.env.NODE_ENV === "production", // Ensure true in production
+      sameSite:
+        process.env.NODE_ENV === "production"
+          ? ("none" as "none")
+          : ("strict" as "strict"),
+    };
 
-    res.status(201).json({
+    res.cookie("token", token, options).status(200).json({
       message: "User registered successfully.",
       user: payload,
       token,
