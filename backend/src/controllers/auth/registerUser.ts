@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import User from "../../models/userModel.js";
+import Friend from "../../models/friendModel.js";
 import { generateToken } from "../../utils/generateToken.js";
 
 export const registerUser: RequestHandler = async (req, res) => {
@@ -31,12 +32,22 @@ export const registerUser: RequestHandler = async (req, res) => {
       return;
     }
 
+    const isExistingInFriends = await Friend.findOne({ email });
+
     const userProfile = await User.create({
       userName,
       email,
       password,
       profilePic: `https://api.dicebear.com/5.x/initials/svg?seed=${userName}`,
     });
+
+    if (!isExistingInFriends) {
+      // If user doesn't have a friends list, create one
+      await Friend.create({
+        user: userName,
+        email: email,
+      });
+    }
 
     const payload = {
       name: userProfile.userName,
