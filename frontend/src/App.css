@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+body {
+  background-color: #131619;
+  font-family: "Plus Jakarta Sans", serif;
+  color: whitesmoke;
+}
+
+/* Keyframe for typing animation */
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+
+  40% {
+    width: 6ch;
+  }
+
+  60% {
+    width: 15ch;
+  }
+
+  100% {
+    width: 0;
+  }
+}
+
+/* Apply the typing animation */
+.typing-animation {
+  display: inline-block;
+  font-family: "Courier New", Courier, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid #000;
+  animation: typing 3s steps(15) infinite;
+}
+
+.form-input:focus-within {
+  border: 2px solid linear-gradient(45deg, #82DBF7 0%, #B6F09C 100%);
+
+}
+
+
+
+::-webkit-scrollbar {
+  display: none;
+}
