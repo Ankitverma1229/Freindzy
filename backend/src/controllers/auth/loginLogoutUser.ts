@@ -45,16 +45,18 @@ export const loginUser: RequestHandler = async (req, res) => {
     const token = generateToken(payload);
 
     const options = {
-      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Ensure true in production
+      secure: process.env.NODE_ENV === "production",
       sameSite:
         process.env.NODE_ENV === "production"
           ? ("none" as "none")
-          : ("strict" as "strict"),
+          : ("lax" as "lax"),
     };
 
-    res.cookie("token", token, options).status(200).json({
+    res.cookie("token", token, options);
+
+    res.status(200).json({
       success: true,
       message: "Login successfull...",
     });
