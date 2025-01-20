@@ -7,17 +7,21 @@ import { UserType } from "../types/Friends";
 
 const BackendURL = import.meta.env.VITE_BACKEND_BASE_URL;
 
+const getToken = () => {
+  return sessionStorage.getItem("token");
+};
+
 export const sendRegistrationDetails = async (
   formData: UserType,
   navigate: NavigateFunction
 ) => {
   try {
-    const response = await axios.post(`${BackendURL}/auth/register`, formData, {
-      withCredentials: true,
-    });
+    const response = await axios.post(`${BackendURL}/auth/register`, formData);
     if (response) {
       toast.success(response.data.message);
-      navigate("/v1/home");
+      sessionStorage.setItem("token", response.data.token);
+
+      navigate("/home");
       return response.data;
     }
   } catch (error: any) {
@@ -33,19 +37,20 @@ export const sendLoginDetails = async (
   navigate: NavigateFunction
 ) => {
   try {
-    const response = await axios.post(`${BackendURL}/auth/login`, formData, {
-      withCredentials: true,
-    });
+    const response = await axios.post(`${BackendURL}/auth/login`, formData);
     if (response) {
       toast.success(response.data.message);
-      navigate("/v1/home");
+
+      // Store the token in sessionStorage
+      sessionStorage.setItem("token", response.data.token);
+      navigate("/home");
 
       return response.data;
     }
   } catch (error: any) {
     toast.error(error.response.data.message);
     throw new Error(
-      error.response?.data?.message || "Error in registration try again"
+      error.response?.data?.message || "Error in login, please try again"
     );
   }
 };
@@ -55,18 +60,27 @@ export const logoutUser = async (
   navigate: NavigateFunction
 ) => {
   try {
-    const response = await axios.post(`${BackendURL}/auth/logout`, {
-      withCredentials: true,
-    });
+    const response = await axios.post(
+      `${BackendURL}/auth/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     if (response) {
       toast.success(response.data.message);
+
+      // Clear token from sessionStorage
+      sessionStorage.removeItem("token");
       dispatch(clearUserDetails());
-      navigate("/v1");
+      navigate("/");
 
       return response.data;
     }
   } catch (error: any) {
-    throw new Error(error || "Error in registration try again");
+    throw new Error(error || "Error in logout, try again");
   }
 };
 
@@ -76,17 +90,19 @@ export const verifyUser = async (
 ) => {
   try {
     const response = await axios.get(`${BackendURL}/auth/user-details`, {
-      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     if (response) {
       dispatch(setUserDetails(response.data.userDetails));
     }
   } catch (error: any) {
     toast.error(error.response.data.message);
-    navigate("/v1");
+    navigate("/");
 
     throw new Error(
-      error.response?.data?.message || "Error in registration try again"
+      error.response?.data?.message || "Error fetching user details"
     );
   }
 };
@@ -94,14 +110,16 @@ export const verifyUser = async (
 export const getAllUser = async () => {
   try {
     const response = await axios.get(`${BackendURL}/auth/all-user`, {
-      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     if (response) {
       return response.data?.allUsers;
     }
   } catch (error: any) {
     throw new Error(
-      error.response?.data?.message || "Error in registration try again"
+      error.response?.data?.message || "Error fetching users, try again"
     );
   }
 };

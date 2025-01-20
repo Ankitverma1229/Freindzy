@@ -6,9 +6,8 @@ import ErrorPage from "../pages/ErrorPage";
 export const FriendZyRoutes = () => {
   return (
     <Routes>
-      <Route path="/v1/home" element={<HomePages />} />
-      <Route path="/v1" element={<AuthPage />} />
-      <Route path="/" element={<Navigate to="/v1" replace />} />
+      <Route path="/home" element={<HomePages />} />
+      <Route path="/" element={<AuthPage />} />
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );

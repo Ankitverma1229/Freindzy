@@ -21,14 +21,14 @@ const HomePages = () => {
 
   return (
     <div className="h-screen overflow-hidden">
-      <div className="flex flex-col md:flex-row h-full">
+      <div className="flex h-full">
         {/* Sidebar */}
-        <div className="w-full md:w-[35%] h-full overflow-y-auto bg-[#1d2327]">
+        <div className="w-[35%] h-full overflow-y-auto bg-[#1d2327]">
           <SideBar />
         </div>
 
         {/* Dashboard */}
-        <div className="w-full md:w-[65%] h-full overflow-y-auto bg-[#131619]">
+        <div className="w-[65%] h-full overflow-y-auto bg-[#131619]">
           <Dashboard />
         </div>
       </div>
