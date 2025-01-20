@@ -1,12 +1,7 @@
 import { RequestHandler } from "express";
 import { AuthenticatedRequest } from "../../middlewares/authMiddleware.js";
 import Friend from "../../models/friendModel.js";
-import { ObjectId } from "mongoose";
 
-type SuggestedFriend = {
-  name: string;
-  profilePic: string;
-};
 export const getAllFriends: RequestHandler = async (
   req: AuthenticatedRequest,
   res
@@ -72,11 +67,9 @@ export const addNewFriend: RequestHandler = async (
       });
     }
 
-    // Check if user already has a friends list
     const isExistingUser = await Friend.findOne({ email });
 
     if (!isExistingUser) {
-      // If user doesn't have a friends list, create one
       const newUser = await Friend.create({
         user: userName,
         email: email,
@@ -101,13 +94,12 @@ export const addNewFriend: RequestHandler = async (
         });
         return;
       }
-      // If the user has an existing friend list, update it
       const updateUser = await Friend.findOneAndUpdate(
-        { email }, // Find user by userName
+        { email },
         {
           $push: { friends: { friendId, friendName, friendEmail, profilePic } },
-        }, // Push new friend into friends array
-        { new: true } // Return the updated document
+        },
+        { new: true }
       );
       res.status(200).json({
         success: true,

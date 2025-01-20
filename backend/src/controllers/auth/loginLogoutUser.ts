@@ -2,86 +2,74 @@ import { RequestHandler } from "express";
 import User from "../../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../../utils/generateToken.js";
+import { AuthenticatedRequest } from "../../middlewares/authMiddleware.js";
 
-export const loginUser: RequestHandler = async (req, res) => {
+export const loginUser: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res
+) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
+      res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
       return;
     }
 
-    const isExistingUser = await User.findOne({ email });
-    if (!isExistingUser) {
-      res.status(404).json({
-        success: false,
-        message: "No account available with provided credentials",
-      });
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(404).json({ success: false, message: "No account found" });
       return;
     }
 
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      isExistingUser.password
-    );
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      res.status(404).json({
-        success: false,
-        message: "Incorrect credentials",
-      });
+      res.status(401).json({ success: false, message: "Invalid credentials" });
       return;
     }
 
     const payload = {
-      name: isExistingUser.userName,
-      email: isExistingUser.email,
-      profilePic: isExistingUser.profilePic,
-      id: isExistingUser._id,
+      name: user.userName,
+      email: user.email,
+      profilePic: user.profilePic,
+      id: user._id,
     };
 
     const token = generateToken(payload);
 
-    const options = {
-      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production"
-          ? ("none" as "none")
-          : ("lax" as "lax"),
-    };
-
-    res.cookie("token", token, options);
+    user.token = token;
+    await user.save();
 
     res.status(200).json({
       success: true,
-      message: "Login successfull...",
+      message: "Login successful",
+      token,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      messsage: "Internal server error",
+      message: "Internal server error",
       error: error.message,
     });
   }
 };
 
-export const logoutUser: RequestHandler = (req, res) => {
+export const logoutUser: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res
+) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    const userId = req.user?.id;
+    const user = await User.findById(userId);
 
-    res.status(200).json({
-      success: true,
-      message: "Logout successful",
-    });
-    return;
+    if (user) {
+      user.token = "";
+      await user.save();
+    }
+
+    res.status(200).json({ success: true, message: "Logout successful" });
   } catch (error: any) {
     res.status(500).json({
       success: false,

@@ -42,7 +42,6 @@ export const registerUser: RequestHandler = async (req, res) => {
     });
 
     if (!isExistingInFriends) {
-      // If user doesn't have a friends list, create one
       await Friend.create({
         user: userName,
         email: email,
@@ -58,25 +57,21 @@ export const registerUser: RequestHandler = async (req, res) => {
 
     const token = generateToken(payload);
 
-    const options = {
-      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Ensure true in production
-      sameSite:
-        process.env.NODE_ENV === "production"
-          ? ("none" as "none")
-          : ("strict" as "strict"),
-    };
+    userProfile.token = token;
+    await userProfile.save();
 
-    res.cookie("token", token, options).status(200).json({
+    res.status(201).json({
+      success: true,
       message: "User registered successfully.",
       user: payload,
       token,
     });
   } catch (error: any) {
     res.status(500).json({
+      success: false,
       message: "Internal server error.",
       error: error.message,
     });
+    return;
   }
 };

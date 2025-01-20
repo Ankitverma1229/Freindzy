@@ -10,7 +10,7 @@ interface IFriends extends Document {
     profilePic: string;
   }>;
   activeRequests: Array<{
-    userId: ObjectId; // Changed from name to userId
+    userId: ObjectId;
     name: string;
     profilePic: string;
     friendEmail: string;
@@ -79,6 +79,6 @@ const friendSchema: Schema<IFriends> = new mongoose.Schema(
   }
 );
 
-friendSchema.index({ email: 1 }); // Add index for faster queries
+friendSchema.index({ email: 1 });
 
 export default mongoose.model<IFriends>("Friend", friendSchema);
