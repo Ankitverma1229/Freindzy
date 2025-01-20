@@ -27,7 +27,6 @@ export const createFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Check if the target user exists in the User schema
     const userDetails = await User.findOne({ email: requestedUserEmail });
     if (!userDetails) {
       res.status(404).json({
@@ -37,7 +36,6 @@ export const createFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Find or create the target user's Friend document
     let targetUser = await Friend.findOneAndUpdate(
       { email: requestedUserEmail },
       {
@@ -57,7 +55,6 @@ export const createFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Check if a request is already sent
     const isAlreadyRequested = targetUser?.activeRequests.some(
       (request) => request.userId.toString() === id.toString()
     );
@@ -69,7 +66,6 @@ export const createFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Check if the target user is already in the requester’s friend list
     const isAlreadyFriend = targetUser?.friends.some(
       (friend) => friend.friendEmail === req.user?.email
     );
@@ -81,7 +77,6 @@ export const createFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Add the friend request
     const updatedUser = await Friend.findOneAndUpdate(
       { email: requestedUserEmail },
       {
@@ -149,7 +144,6 @@ export const acceptFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Find the current user's friend document
     const userFriendDoc = await Friend.findOne({ email });
     if (!userFriendDoc) {
       res.status(404).json({
@@ -159,7 +153,6 @@ export const acceptFriendRequest: RequestHandler = async (
       return;
     }
 
-    // Find the friend request in activeRequests
     const request = userFriendDoc.activeRequests.find(
       (req) => req.userId.toString() === requestedUserId
     );
@@ -187,7 +180,6 @@ export const acceptFriendRequest: RequestHandler = async (
       { new: true }
     );
 
-    // Add the friend to the friends array
     const newFriend = {
       friendId: request.userId,
       friendName: request.name,
@@ -197,12 +189,10 @@ export const acceptFriendRequest: RequestHandler = async (
 
     userFriendDoc.friends.push(newFriend);
 
-    // Remove the friend from activeRequests
     userFriendDoc.activeRequests = userFriendDoc.activeRequests.filter(
       (req) => req.userId.toString() !== requestedUserId
     );
 
-    // Save the updated document
     await userFriendDoc.save();
 
     res.status(200).json({

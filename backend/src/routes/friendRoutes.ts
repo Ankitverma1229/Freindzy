@@ -9,7 +9,6 @@ import { authenticate } from "../middlewares/authMiddleware.js";
 import {
   acceptFriendRequest,
   cancelFriendRequest,
-  // acceptFriendRequest,
   createFriendRequest,
   getActiveFriendRequest,
 } from "../controllers/requests/friendRequestController.js";
