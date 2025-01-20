@@ -9,12 +9,18 @@ dotenv.config();
 
 const PORT = Number(process.env.PORT!) || 5555;
 const DatabaseUrl = String(process.env.MONGO_URI);
+const clientUrl = process.env.FRONTEND_URL;
 
 connectDB(DatabaseUrl);
 
 const app = express();
 
-app.use(cors({ origin: "*", credentials: true }));
+app.use(
+  cors({
+    origin: clientUrl?.endsWith("/") ? clientUrl.slice(0, -1) : clientUrl, // Ensure no trailing slash in the URL
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", userRouter);
