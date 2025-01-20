@@ -37,6 +37,7 @@ export const sendLoginDetails = async (
   navigate: NavigateFunction
 ) => {
   try {
+    console.log(formData);
     const response = await axios.post(`${BackendURL}/auth/login`, formData);
     if (response) {
       toast.success(response.data.message);
@@ -98,7 +99,6 @@ export const verifyUser = async (
       dispatch(setUserDetails(response.data.userDetails));
     }
   } catch (error: any) {
-    toast.error(error.response.data.message);
     navigate("/");
 
     throw new Error(

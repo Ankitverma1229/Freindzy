@@ -17,7 +17,9 @@ const app = express();
 
 app.use(
   cors({
-    origin: clientUrl?.endsWith("/") ? clientUrl.slice(0, -1) : clientUrl, // Ensure no trailing slash in the URL
+    origin: clientUrl?.endsWith("/")
+      ? clientUrl.slice(0, -1)
+      : clientUrl || "*", // Ensure no trailing slash in the URL
     credentials: true,
   })
 );

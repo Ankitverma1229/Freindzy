@@ -49,6 +49,7 @@ const Dashboard = () => {
   const fetchActiveRequests = async () => {
     const response = await getActiveRequests();
     setActiveFriendRequests(response);
+    console.log(response);
   };
 
   useEffect(() => {

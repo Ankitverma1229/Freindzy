@@ -31,11 +31,12 @@ export const getActiveRequests = async () => {
     const token = getAuthToken();
     const response = await axios.get(`${BackendURL}/friend/active-request`, {
       headers: {
-        Authorization: `Bearer ${token}`, // Sending token in Authorization header
+        Authorization: `Bearer ${token}`,
       },
     });
     if (response) {
-      return response.data.activeRequests;
+      console.log(response);
+      return response.data.acitveRequests;
     }
   } catch (error: any) {
     throw new Error(
