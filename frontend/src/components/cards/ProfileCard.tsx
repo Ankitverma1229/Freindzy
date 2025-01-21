@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { sendFriendRequest } from "../../services/friendServices";
 import { triggerUpdate } from "../../store/Userslice";
 import { useDispatch } from "react-redux";
+import PageLoadingAnimation from "../animation/PageLoadingAnimation";
 
 interface ProfileCardProps {
   userName: string;
@@ -15,10 +17,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   profilePic,
   showAddFriend,
 }) => {
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const sendRequest = async (email: string) => {
-    await sendFriendRequest(email);
-    dispatch(triggerUpdate());
+    try {
+      setLoading(true);
+      await sendFriendRequest(email);
+      dispatch(triggerUpdate());
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="flex flex-col items-center w-full sm:w-56 p-3 border border-gray-700 rounded-md shadow-md bg-[#131619]">
@@ -33,10 +43,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {showAddFriend! && (
         <button
-          className="mt-3 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="mt-3 h-8 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
           onClick={() => sendRequest(email)}
         >
-          Add Friend
+          {loading ? <PageLoadingAnimation /> : "Add Friend"}
         </button>
       )}
     </div>
